@@ -35,7 +35,7 @@ P2_cost = 400; % cost per panel
 P2 = [P2_area,P2_power_ub,P2_power_lb,P2_to_g_poly_coef,P2_cost];
 
 %% Functions
-x = [ 0    0.1040         0.1040         0         0];
+x = [ 0.00022847    0.00013978     0.0010397    0.00077173     0.0001443     10323];
 P_area = P1_area; 
 P_cost = P1_cost; 
 P_to_t_coef = P1_to_g_poly_coef;

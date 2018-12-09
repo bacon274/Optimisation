@@ -1,12 +1,9 @@
-clf 
-close all
-
 %Genetic Algorithm Implementation for Subsystem 1
 
 %Genetic Algorithm Implementation for Subsystem 1
 
 %% Global Fixed Parameters 
-global a1 a2 a3 a4 a5 i1 i2 i3 i4 i5 Results_Array_Energy Results_Array_Years Results_Array_Hrs_light Results_Array_Cost solution solution_table
+global a1 a2 a3 a4 a5 i1 i2 i3 i4 i5 Results_Array_Energy Results_Array_Years Results_Array_Hrs_light Results_Array_Cost
 % Area of Windows (m^2)
 a1= 1.44; 
 a2= 1.44; 
@@ -25,13 +22,16 @@ Results_Array_Energy = [];
 Results_Array_Years = [];
 Results_Array_Hrs_light = [];
 Results_Array_Cost = [];
-solution_table = table();
+
+
 % Panel Information PS-M-NX
 P1_area = 1.4;
 P1_power_ub = 0.104; % note this is power /m^2 under test conditions
 P1_power_lb = 0;
 P1_to_g_poly_coef = [0, 38.395,   -13.6,    1.0007]; % this is the list of polynomial coefficients that map Power onto transparency
+
 P1_cost = 400; % cost per panel
+
 P1 = [P1_area,P1_power_ub,P1_power_lb,P1_to_g_poly_coef,P1_cost];
 
 % Panel Information PS-CT
@@ -40,15 +40,24 @@ P2_power_ub = 0.072; % note this is power /m^2 under test conditions
 P2_power_lb = 0;
 P2_to_g_poly_coef = [0,  0,  -12.5, 1.0000]; % this is the list of polynomial coefficients that map Power onto CHANGE THIS FOR % TRANSPARENCY
 P2_cost = 400; % cost per panel
+
 P2 = [P2_area,P2_power_ub,P2_power_lb,P2_to_g_poly_coef,P2_cost];
 
-%% Solver Functions
+%% Functions
+
+% add linear inequality constraints
+
+% we know from polyfit g =  -4.4103e-07*p^3 + 9.4322e-05*p^2 -0.0072*p^3 + 0.5518
+% however this might need to be linear in which case g =  -0.0031*p +  0.5755
+
 %run_ga(P1)
 %run_fmincon(P1)
 %run_swarm(P1)
-solution_table
+run_swarmcon(P1)
 %Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
-run_multiobjectga(P1)
+
+figure()
+scatter3(Results_Array_Energy,Results_Array_Hrs_light,Results_Array_Cost)
 
 % Algorithm Functions
 function run_fmincon(P)
@@ -82,15 +91,12 @@ function run_ga(P)
     Number_variables = 5;
     X0 = [0 0 0 0 0]; % start point
     options.InitialPopulationMatrix = X0; 
-    tic 
+    
     [x,fval,exitflag,output] = ga(f, Number_variables,[],[],[],[],P_power_lb,P_power_ub,cf,options)
-    time = toc;
     if exitflag == -2
-        Clean()
         run_ga(P)
     else
-        Test(x,P_to_g_coef,P_area,P_cost,time,'Genetic Algorithm')
-        Clean()
+        Test(x,P_to_g_coef,P_area,P_cost)
     end
     
     
@@ -103,18 +109,16 @@ function run_swarm(P)
     P_cost = P(8);
     
     %Objective Function
-    f = @(x) SO(x,P_to_g_coef,P_area,P_cost);
+    f = @(x) objective(x,P_area,P_cost);
+    %Constraint Fucntion
+    cf = @(x) confuneq(x,P_to_g_coef,P_area,P_cost);
     
     Number_variables = 5;
-    X0 = [0 0 0 0 0]; % start pointNumber_variables
-    tic
+    X0 = [0 0 0 0 0]; % start point
     [x,fval,exitflag] = particleswarm(f,Number_variables,P_power_lb,P_power_ub)
-    time = toc;
-    Test(x,P_to_g_coef,P_area,P_cost,time,'Particle Swarm')
-    Clean()
-    
+    Test(x,P_to_g_coef,P_area,P_cost)
 end
-function run_multiobjectga(P)
+function run_swarmcon(P)
     P_area = P(1);
     P_power_ub = [P(2);P(2);P(2);P(2);P(2);];
     P_power_lb = [0;0;0;0;0;];
@@ -122,24 +126,17 @@ function run_multiobjectga(P)
     P_cost = P(8);
     
     %Objective Function
-    f = @(x) [Array_energy(x); Array_cost(x,P_area,P_cost)];
+    f = @(x) objective(x,P_area,P_cost);
     %Constraint Fucntion
-    %cf = @(x) confuneq(x,P_to_g_coef,P_area,P_cost);
+    cf = @(x) confuneq(x,P_to_g_coef,P_area,P_cost);
     
     Number_variables = 5;
-    X0 = [0 0 0 0 0]; % start point
-    %options.InitialPopulationMatrix = X0;
-    options = optimoptions(@gamultiobj,'PlotFcn',{@gaplotpareto,@gaplotscorediversity});
-    
-    [x,fval,exitflag,output] = gamultiobj(f,Number_variables,[],[],[],[],P_power_lb,P_power_ub,options)
-    
-    Test(x)
-    
+    [x,fval,exitflag] = pso(f,Number_variables,[],[],[],[],P_power_lb,P_power_ub,cf)
+    Test(x,P_to_g_coef,P_area,P_cost)
 end
-
-% Objective and Constraint Functions
+%Objective and Constraint Functions
 function [c,ceq] = confuneq(x,P_to_t_coef,P_area,P_cost)
-    global Results_Array_Energy Results_Array_Hrs_light Results_Array_Cost Results_Array_Years
+    global Results_Array_Energy Results_Array_Hrs_light Results_Array_Cost
     % non-linear inequality constraint 
     %Light Hours of the day that qualify
     Hrs_qualify = Light(x,P_to_t_coef);
@@ -161,45 +158,17 @@ function [c,ceq] = confuneq(x,P_to_t_coef,P_area,P_cost)
     Results_Array_Energy = [Results_Array_Energy, Energy_generated];
     Results_Array_Hrs_light = [Results_Array_Hrs_light, Hrs_qualify];
     Results_Array_Cost = [Results_Array_Cost, Cost];
-    Results_Array_Years = [Results_Array_Years, objective(x,P_area,P_cost)];
 end
 function z = objective(x,P_area,P_cost) % x1-5 = power rating  % need to add in panel information and hence work out how many panels per window
+    global Results_Array_Years 
     % assign costs for windows
     Cost = Array_cost(x,P_area,P_cost);
     Energy_generated = Array_energy(x);
     Annual_payback = FIT_payback(Energy_generated);
     Years_to_payback = Years(Cost,Annual_payback);
     z = Years_to_payback;
+    Results_Array_Years = [Results_Array_Years,Years_to_payback];
 end
-%MUlti Objective GA: Objective
-function z = MAO1(x) % x1-5 = power rating  % need to add in panel information and hence work out how many panels per window 
-    % assign costs for windows
-    z = Array_energy(x);  
-end
-%Swarm Objective function including constraints 
-function z = SO(x,P_to_t_coef,P_area,P_cost)
-% assign costs for windows
-    global Results_Array_Energy Results_Array_Hrs_light Results_Array_Cost Results_Array_Years
-
-    Cost = Array_cost(x,P_area,P_cost);
-    Energy_generated = Array_energy(x);
-    Annual_payback = FIT_payback(Energy_generated);
-    Years_to_payback = Years(Cost,Annual_payback);
-    Hrs_qualify = Light(x,P_to_t_coef);
-    penalty = 0;
-    Results_Array_Energy = [Results_Array_Energy, Energy_generated];
-    Results_Array_Hrs_light = [Results_Array_Hrs_light, Hrs_qualify];
-    Results_Array_Cost = [Results_Array_Cost, Cost];
-    Results_Array_Years = [Results_Array_Years, Years_to_payback];
-    
-    if Hrs_qualify < 6 || Energy_generated <100 || Cost > 4000
-        penalty = 1000;
-    end
-    
-    z = Years_to_payback + penalty;
-
-end
-
 % Calculation Functions:
 function e = Array_energy(x)
     global a1 a2 a3 a4 a5 i1 i2 i3 i4 i5
@@ -287,18 +256,15 @@ function hrs = Light(x,P_to_t_coef)
     hrs = Hrs_qualify;
 end
 %Test Output from solver
-function Test(x,P_to_t_coef,P_area,P_cost,time,solver)
-    global Results_Array_Energy Results_Array_Years Results_Array_Hrs_light  solution_table
-   
+function t = Test(x,P_to_t_coef,P_area,P_cost)
     Cost_pounds = Array_cost(x,P_area,P_cost);
     Energy_generated_kWh = Array_energy(x);
     Annual_payback_pounds = FIT_payback(Energy_generated_kWh);
     Years_to_payback = Years(Cost_pounds,Annual_payback_pounds);
     Hrs_light_qualify = Light(x,P_to_t_coef);
     
-    T = table(string(solver),time,x(1),x(2),x(3),x(4),x(5),Years_to_payback,Cost_pounds,Energy_generated_kWh,Annual_payback_pounds,Hrs_light_qualify,'VariableNames',{'Solver','Time_to_solve', 'W1','W2','W3','W4','W5','Years_until_ROI','Upfront_cost','Energy_Generated','Annual_Payback','Hrs_of_quality_light'});
+    T = table(x(1),x(2),x(3),x(4),x(5),Years_to_payback,Cost_pounds,Energy_generated_kWh,Annual_payback_pounds,Hrs_light_qualify)
     
-    solution_table = [solution_table; T];
     GX = [[0.75,1.75,1.75,0.75];[0,1,1,0]; [1.5,2.5,2.5,1.5]; [0,1,1,0]; [1.5,2.5,2.5,1.5]; ];
     GY = [[0,0,1.8,1.8];[2,2,2.5,2.5]; [2,2,2.5,2.5]; [3,3,4.4,4.4]; [3,3,4.4,4.4];];
     
@@ -310,52 +276,4 @@ function Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     end
     cb = colorbar;
     cb.Label.String = 'Transparency %' ;
-    
-    figure()
-    scatter3(Results_Array_Energy,Results_Array_Hrs_light,Results_Array_Years)
-    xlabel('Energy (kWh/year)')
-    ylabel('Work Quality Light (Hrs/day)')
-    zlabel('Years to pay back')
-    hold on 
-    scatter3(Energy_generated_kWh, Hrs_light_qualify,Years_to_payback,[100],'red','filled')
-end
-function Testmo(x,P_to_t_coef,P_area,P_cost,time,solver)
-    global Results_Array_Energy Results_Array_Years Results_Array_Hrs_light  solution_table
-   
-    Cost_pounds = Array_cost(x,P_area,P_cost);
-    Energy_generated_kWh = Array_energy(x);
-    Annual_payback_pounds = FIT_payback(Energy_generated_kWh);
-    Years_to_payback = Years(Cost_pounds,Annual_payback_pounds);
-    Hrs_light_qualify = Light(x,P_to_t_coef);
-    
-    T = table(string(solver),time,x(1),x(2),x(3),x(4),x(5),Years_to_payback,Cost_pounds,Energy_generated_kWh,Annual_payback_pounds,Hrs_light_qualify,'VariableNames',{'Solver','Time_to_solve', 'W1','W2','W3','W4','W5','Years_until_ROI','Upfront_cost','Energy_Generated','Annual_Payback','Hrs_of_quality_light'});
-    
-    solution_table = [solution_table; T];
-    GX = [[0.75,1.75,1.75,0.75];[0,1,1,0]; [1.5,2.5,2.5,1.5]; [0,1,1,0]; [1.5,2.5,2.5,1.5]; ];
-    GY = [[0,0,1.8,1.8];[2,2,2.5,2.5]; [2,2,2.5,2.5]; [3,3,4.4,4.4]; [3,3,4.4,4.4];];
-    
-    figure()
-    hold on
-    for i = 1:5
-        trans = (1-(x(i)/0.104))*100;
-        patch(GX(i,:),GY(i,:),trans);
-    end
-    cb = colorbar;
-    cb.Label.String = 'Transparency %' ;
-    
-    figure()
-    scatter3(Results_Array_Energy,Results_Array_Hrs_light,Results_Array_Years)
-    xlabel('Energy (kWh/year)')
-    ylabel('Work Quality Light (Hrs/day)')
-    zlabel('Years to pay back')
-    hold on 
-    scatter3(Energy_generated_kWh, Hrs_light_qualify,Years_to_payback,[100],'red','filled')
-end
-% House Keeping
-function Clean()
-    global Results_Array_Energy Results_Array_Years Results_Array_Hrs_light Results_Array_Cost
-    Results_Array_Energy = [];
-    Results_Array_Years  = [];
-    Results_Array_Hrs_light  = [];
-    Results_Array_Cost = [];
 end
