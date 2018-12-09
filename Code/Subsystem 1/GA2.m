@@ -50,11 +50,13 @@ P2 = [P2_area,P2_power_ub,P2_power_lb,P2_to_g_poly_coef,P2_cost];
 % we know from polyfit g =  -4.4103e-07*p^3 + 9.4322e-05*p^2 -0.0072*p^3 + 0.5518
 % however this might need to be linear in which case g =  -0.0031*p +  0.5755
 
-%run_ga(P1)
+run_ga(P1)
 %run_fmincon(P1)
+%Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
 
-figure()
-scatter3(Results_Array_Energy,Results_Array_Hrs_light,Results_Array_Cost)
+%figure()
+%scatter3(Results_Array_Energy,Results_Array_Hrs_light,Results_Array_Cost)
+
 % Algorithm Functions
 function run_fmincon(P)
     P_area = P(1);
@@ -110,7 +112,7 @@ function [c,ceq] = confuneq(x,P_to_t_coef,P_area,P_cost)
    
     c1 = 6 - Hrs_qualify;    % 5 hours of good natural light per day 
     c2 = 100 - Energy_generated ;  % Energy generated minimum 
-    c3 = Cost-3000; % cost belw £5000
+    c3 = Cost-4000; % cost belw £5000
     
     c = [c1;
          c2
@@ -228,4 +230,15 @@ function t = Test(x,P_to_t_coef,P_area,P_cost)
     
     T = table(x(1),x(2),x(3),x(4),x(5),Years_to_payback,Cost_pounds,Energy_generated_kWh,Annual_payback_pounds,Hrs_light_qualify)
     
+    GX = [[0.75,1.75,1.75,0.75];[0,1,1,0]; [1.5,2.5,2.5,1.5]; [0,1,1,0]; [1.5,2.5,2.5,1.5]; ];
+    GY = [[0,0,1.8,1.8];[2,2,2.5,2.5]; [2,2,2.5,2.5]; [3,3,4.4,4.4]; [3,3,4.4,4.4];];
+    
+    figure()
+    hold on
+    for i = 1:5
+        trans = (1-(x(i)/0.104))*100;
+        patch(GX(i,:),GY(i,:),trans);
+    end
+    cb = colorbar;
+    cb.Label.String = 'Transparency %' 
 end
