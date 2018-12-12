@@ -167,7 +167,7 @@ disp(sprintf('Final Results-----------------------------'));
 [bestfun,bestrun]=min(fff) 
 best_variables=rgbest(bestrun,:) 
 disp(sprintf('*********************************************************')); 
-toc   
+time = toc;   
 %% outputs from PSO
 % PSO convergence characteristic 
 figure(1)
@@ -178,13 +178,14 @@ title('PSO convergence characteristic')
 
 
 %% MAIN SUBSYSTEM OUTPUTS
+global window_energy
 Consumer_demmand = 3000;
-window_energy=158;
+%window_energy=158;
 [Best_Modules,con] = final_mods(Consumer_demmand, window_energy, f0);
 number_of_final_modules = length(Best_Modules);
      
 % digitalising to make a grid and apply final inequality obstruction
-%Lia = ismember(list,Best_Modules);
+Lia = ismember(module_number,Best_Modules)
 
 
         
@@ -209,6 +210,7 @@ cmain= ci/100;
 %payback_time = installation/yearly_saving;
 payback_time = ci/yearly_saving;
 
+T = table(string('Particle_Swarm'),time,number_of_final_modules,payback_time,cmain,con,yearly_saving,Area_total,'VariableNames',{'Solver','Time_to_solve','Number_of_modules','Years_until_ROI','Upfront_cost','Energy_Generated','Annual_Payback','Surface_area'})
 
 
 %% functions

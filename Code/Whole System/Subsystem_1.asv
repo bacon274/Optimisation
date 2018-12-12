@@ -378,11 +378,6 @@ function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     end
     cb = colorbar;
     cb.Label.String = 'Transparency %' ;
-    set(gcf,'color','w');
-    set(gca,'xtick',[])
-    set(gca,'ytick',[])
-    set(gca,'xticklabel',[])
-    set(gca,'yticklabel',[])
     
     
     figure()
