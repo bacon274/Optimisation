@@ -45,11 +45,13 @@ P2 = [P2_area,P2_power_ub,P2_power_lb,P2_to_g_poly_coef,P2_cost];
 %% Solver Functions
 %run_ga(P1)
 %run_fmincon(P1)
-%run_swarm(P1)
-solution_table
-%Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
-run_multiobjectga(P1)
+run_swarm(P1)
+%run_ga2(P1)
 
+%Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
+%run_multiobjectga(P1)
+
+solution_table
 % Algorithm Functions
 function run_fmincon(P)
     P_area = P(1);
@@ -71,13 +73,14 @@ function run_ga(P)
     P_area = P(1);
     P_power_ub = [P(2);P(2);P(2);P(2);P(2);];
     P_power_lb = [0;0;0;0;0;];
-    P_to_g_coef = P(4:7);
+    P_to_t_coef = P(4:7);
     P_cost = P(8);
     
     %Objective Function
     f = @(x) objective(x,P_area,P_cost);
+    
     %Constraint Fucntion
-    cf = @(x) confuneq(x,P_to_g_coef,P_area,P_cost);
+    cf = @(x) confuneq(x,P_to_t_coef,P_area,P_cost);
     
     Number_variables = 5;
     X0 = [0 0 0 0 0]; % start point
@@ -89,7 +92,39 @@ function run_ga(P)
         Clean()
         run_ga(P)
     else
-        Test(x,P_to_g_coef,P_area,P_cost,time,'Genetic Algorithm')
+        Test(x,P_to_t_coef,P_area,P_cost,time,'Genetic Algorithm')
+        Clean()
+    end
+    
+    
+end
+function run_ga2(P)
+    % Load Panel Properties
+    P_area = P(1);
+    P_power_ub = [P(2);P(2);P(2);P(2);P(2);];
+    P_power_lb = [0;0;0;0;0;];
+    P_to_t_coef = P(4:7);
+    P_cost = P(8);
+    
+    %Objective Function
+   % f = @(x) objective(x,P_area,P_cost);
+    f = @(x) SO(x,P_to_t_coef,P_area,P_cost);
+    
+    
+    %Constraint Fucntion
+    %cf = @(x) confuneq(x,P_to_t_coef,P_area,P_cost);
+    
+    Number_variables = 5;
+    X0 = [0 0 0 0 0]; % start point
+    options.InitialPopulationMatrix = X0; 
+    tic 
+    [x,fval,exitflag,output] = ga(f, Number_variables,[],[],[],[],P_power_lb,P_power_ub,[],options)
+    time = toc;
+    if exitflag == -2
+        Clean()
+        run_ga(P)
+    else
+        Test(x,P_to_t_coef,P_area,P_cost,time,'Genetic Algorithm')
         Clean()
     end
     
@@ -118,11 +153,11 @@ function run_multiobjectga(P)
     P_area = P(1);
     P_power_ub = [P(2);P(2);P(2);P(2);P(2);];
     P_power_lb = [0;0;0;0;0;];
-    P_to_g_coef = P(4:7);
+    P_to_t_coef = P(4:7);
     P_cost = P(8);
     
     %Objective Function
-    f = @(x) [Array_energy(x); Array_cost(x,P_area,P_cost)];
+    f = @(x) [Array_cost(x,P_area,P_cost); -Array_energy(x); -Light(x,P_to_t_coef)]; %objective(x,P_area,P_cost) SO(x,P_to_t_coef,P_area,P_cost)
     %Constraint Fucntion
     %cf = @(x) confuneq(x,P_to_g_coef,P_area,P_cost);
     
@@ -134,9 +169,8 @@ function run_multiobjectga(P)
     [x,fval,exitflag,output] = gamultiobj(f,Number_variables,[],[],[],[],P_power_lb,P_power_ub,options)
     time = toc;
     for i = 1:length(x)
-        i
         x(i,:)
-        Test(x(i,:),P_to_g_coef,P_area,P_cost,time,'Multi Objective Genetic Algorithm')
+        T = Test(x(i,:),P_to_t_coef,P_area,P_cost,time,'Multi Objective Genetic Algorithm')
     end
    
 end
@@ -175,11 +209,7 @@ function z = objective(x,P_area,P_cost) % x1-5 = power rating  % need to add in 
     Years_to_payback = Years(Cost,Annual_payback);
     z = Years_to_payback;
 end
-%MUlti Objective GA: Objective
-function z = MAO1(x) % x1-5 = power rating  % need to add in panel information and hence work out how many panels per window 
-    % assign costs for windows
-    z = Array_energy(x);  
-end
+%Multi Objective GA: Objective
 %Swarm Objective function including constraints 
 function z = SO(x,P_to_t_coef,P_area,P_cost)
 % assign costs for windows
@@ -290,8 +320,44 @@ function hrs = Light(x,P_to_t_coef)
     end
     hrs = Hrs_qualify;
 end
+function l = Light2(x,P_to_t_coef)
+    global a1 a2 a3 a4 a5 
+    % Initialise values
+     % the number of hours in the day that are above the threshold amount
+    
+    % Parameters
+    a = [a1,a2,a3,a4,a5]; % Area values for each window 
+    % Yearly Irridiance values per window should these go at beginning and
+    % made global?
+    d = [0.4,1.5,1.5,2,2]; % distances from each window to workspace 
+    I_roof = [0,0,0,0,0,0,0,0,4,107,98,84,78,67,51,24,1,0,0,0,0,0,0,0]; % irridiance values for day in january 
+    I_wall = [0,0,0,0,5,80,80,100,100,80,40,30,10,7,4,2,0,0,0,0,0,0,0,0]; % irridiance values for day in january 
+    Lux_array = [];
+    
+    % Calculate Light Levels for each hour of the day, for each window.
+    % Tolling up the number of hours that qualify
+    for k = 1:24
+        Lux_total = 0;
+        for j = 1:5
+            transparency = round(polyval(P_to_t_coef,x(j)),2); % working out the g value from linear regression value CHANGE
+            if j == 1 || j ==2
+                I = I_roof;
+            else
+                I = I_wall;
+            end
+            
+            lm = I(k)*transparency*a(j)*683; % light in lumens for window 
+            Lux = lm/(9*d(j)^2); % the lux values on the table should this take area into account?
+            Lux_total = Lux_total + Lux;
+            
+        end
+        Lux_array = [Lux_array; Lux_total;];
+    end 
+    l = sum(Lux_array);
+
+end
 %Test Output from solver
-function Test(x,P_to_t_coef,P_area,P_cost,time,solver)
+function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     global Results_Array_Energy Results_Array_Years Results_Array_Hrs_light  solution_table
    
     Cost_pounds = Array_cost(x,P_area,P_cost);
