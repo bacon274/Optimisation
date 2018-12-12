@@ -51,7 +51,7 @@ run_swarm(P1)
 %Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
 %run_multiobjectga(P1)
 
-solution_table
+%solution_table
 % Algorithm Functions
 function run_fmincon(P)
     P_area = P(1);
@@ -368,7 +368,7 @@ function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     
     T = table(string(solver),time,x(1),x(2),x(3),x(4),x(5),Years_to_payback,Cost_pounds,Energy_generated_kWh,Annual_payback_pounds,Hrs_light_qualify,'VariableNames',{'Solver','Time_to_solve', 'W1','W2','W3','W4','W5','Years_until_ROI','Upfront_cost','Energy_Generated','Annual_Payback','Hrs_of_quality_light'});
     
-    solution_table = [solution_table; T];
+    solution_table = [solution_table; T;];
     GX = [[0.75,1.75,1.75,0.75];[0,1,1,0]; [1.5,2.5,2.5,1.5]; [0,1,1,0]; [1.5,2.5,2.5,1.5]; ];
     GY = [[0,0,1.8,1.8];[2,2,2.5,2.5]; [2,2,2.5,2.5]; [3,3,4.4,4.4]; [3,3,4.4,4.4];];
     
