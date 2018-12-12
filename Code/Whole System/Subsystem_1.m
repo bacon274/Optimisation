@@ -3,8 +3,6 @@ close all
 
 %Genetic Algorithm Implementation for Subsystem 1
 
-%Genetic Algorithm Implementation for Subsystem 1
-
 %% Global Fixed Parameters 
 global a1 a2 a3 a4 a5 i1 i2 i3 i4 i5 Results_Array_Energy Results_Array_Years Results_Array_Hrs_light Results_Array_Cost solution solution_table
 % Area of Windows (m^2)
@@ -45,7 +43,7 @@ P2 = [P2_area,P2_power_ub,P2_power_lb,P2_to_g_poly_coef,P2_cost];
 %% Solver Functions
 %run_ga(P1)
 %run_fmincon(P1)
-run_swarm(P1)
+%run_swarm(P1)
 %run_ga2(P1)
 
 %Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
