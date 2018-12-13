@@ -1,8 +1,8 @@
 %% Final Subsystem 2
 tic 
-clc 
-clear all 
-close all 
+%clc 
+%clear all 
+%close all 
 rng default % so that you can have reproducability
 num=xlsread('position_data.xlsx');
 
@@ -59,7 +59,7 @@ initial_R_opt;
 %% PSO run
 
 for run=1:maxrun     
-    run
+    run;
 
     % pso initialisation
     %for i=1:n         
@@ -143,12 +143,14 @@ for run=1:maxrun
          end
 
 
-         % displaying iterative results         
+         % displaying iterative results 
+         
          if ite==1             
              disp(sprintf('Iteration    Best particle    Objective fun'));         
          end
          disp(sprintf('%8g  %8g          %8.4f',ite,index,fmin0));             
          ite=ite+1; 
+         
     end
     % pso algorithm     
     gbest;     
@@ -157,20 +159,20 @@ for run=1:maxrun
     %fvalue=10*(gbest(1)-1)^2+20*(gbest(2)-2)^2+30*(gbest(3)-3)^2;     
     fff(run)=fvalue;     
     rgbest(run,:)=gbest;     
-    disp(sprintf('--------------------------------------'));
+    %disp(sprintf('--------------------------------------'));
 end
 
 % pso main program 
-disp(sprintf('\n')); 
-disp(sprintf('*********************************************************')); 
-disp(sprintf('Final Results-----------------------------')); 
-[bestfun,bestrun]=min(fff) 
+%disp(sprintf('\n')); 
+%disp(sprintf('*********************************************************')); 
+%disp(sprintf('Final Results-----------------------------')); 
+[bestfun,bestrun]=min(fff);
 best_variables=rgbest(bestrun,:) 
-disp(sprintf('*********************************************************')); 
+%disp(sprintf('*********************************************************')); 
 time = toc;   
 %% outputs from PSO
 % PSO convergence characteristic 
-figure(1)
+figure()
 plot(ffmin(1:ffite(bestrun),bestrun),'-k'); 
 xlabel('Iteration'); 
 ylabel('Fitness function value'); 
@@ -178,14 +180,16 @@ title('PSO convergence characteristic')
 
 
 %% MAIN SUBSYSTEM OUTPUTS
-global window_energy
+global reach_energy
+
+window_energy
 Consumer_demmand = 3000;
-window_energy=158;
-[Best_Modules,con] = final_mods(Consumer_demmand, window_energy, f0);
+%window_energy=158;
+[Best_Modules,con] = final_mods(reach_energy, f0);
 number_of_final_modules = length(Best_Modules);
      
 % digitalising to make a grid and apply final inequality obstruction
-%Lia = ismember(list,Best_Modules);
+Lia = ismember(module_number,Best_Modules);
 
 
         
@@ -210,7 +214,7 @@ cmain= ci/100;
 %payback_time = installation/yearly_saving;
 payback_time = ci/yearly_saving;
 
-T = table(string('Particle Swarm'),time,number_of_final_modules,payback_time,cmain,con,yearly_saving,Area_total,'VariableNames',{'Solver','Time_to_solve','Number_of_'Years_until_ROI','Upfront_cost','Energy_Generated','Annual_Payback','Surface_area'})
+T = table(string('Particle_Swarm'),time,number_of_final_modules,payback_time,cmain,con,yearly_saving,Area_total,'VariableNames',{'Solver','Time_to_solve','Number_of_modules','Years_until_ROI','Upfront_cost','Energy_Generated','Annual_Payback','Surface_area'})
 
 
 %% functions
@@ -235,7 +239,7 @@ penalty=10000;           % penalty on each constraint violation
 f=of+penalty*sum(c); 
 end
 
-function [final_modules_chosen, energy_gen] = final_mods(Consumer_demmand, window_energy, f0)
+function [final_modules_chosen, energy_gen] = final_mods(reach_energy, f0)
 
 % modules to choose - sorted descending by energy output
 A = (f0*-1)-28; % *-1 t get enegy_yearly in positive from the minimization problem to maxi problem and -28 for inverter battery storage backup power (modules power themselves independantely)
