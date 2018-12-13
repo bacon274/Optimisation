@@ -1,10 +1,19 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                         Subsystem 1 - BIPV Windows                      %
+%   This file is the implementation of Subsystem 1 optimisation analysis  %
+%      it runs independently or when called with the whole system file    %
+%                              Jacob Mitchell                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Clear variables 
 clf 
 close all
 
-%Genetic Algorithm Implementation for Subsystem 1
-
-%% Global Fixed Parameters 
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                          Global Fixed Parameters                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 global a1 a2 a3 a4 a5 i1 i2 i3 i4 i5 Results_Array_Energy Results_Array_Years Results_Array_Hrs_light Results_Array_Cost solution solution_table
+
 % Area of Windows (m^2)
 a1= 1.44; 
 a2= 1.44; 
@@ -18,12 +27,18 @@ i3=744.54;
 i4=744.54;
 i5=744.54;
 
-% Results Arrays for plotting outcomes of GA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                Results Arrays for plotting outcomes of solvers          %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Results_Array_Energy = [];
 Results_Array_Years = [];
 Results_Array_Hrs_light = [];
 Results_Array_Cost = [];
 solution_table = table();
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                           Panel information                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Panel Information PS-M-NX
 P1_area = 1.4;
 P1_power_ub = 0.104; % note this is power /m^2 under test conditions
@@ -40,17 +55,35 @@ P2_to_g_poly_coef = [0,  0,  -12.5, 1.0000]; % this is the list of polynomial co
 P2_cost = 400; % cost per panel
 P2 = [P2_area,P2_power_ub,P2_power_lb,P2_to_g_poly_coef,P2_cost];
 
-%% Solver Functions
-run_ga(P1)
-%run_fmincon(P1)
-%run_swarm(P1)
-%run_ga2(P1)
-%sensitivity([0.104	0.104 	0.104	0.104	0.104] ,P1)
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                           Solver Functions                              %
+%               Uncomment the functions below to run each solver          %           
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Both Panel type 1 and 2 can be tested however, initial tests found P1 to 
+% be more cost effective
+
+run_ga(P1)                         % Genetic Algorithm
+%run_fmincon(P1)                   % Gradient Based Constrained Optimiser
+%run_swarm(P1)                     % Particle Swarm Analysis 
+%run_ga2(P1)                       % Genetic Algorithm w/constraints in obj
+%run_multiobjectga(P1)             % Multi Objective Genetic Algorithm
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                         Post Optimal Analysis                           %
+%                Uncomment the functions below to run                     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%sensitivity([0.104;0.104;0.104	0.104;0.104] ,P1) 
 
 %Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
-%run_multiobjectga(P1)
 
-%solution_table
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Functions                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Algorithm Functions
 function run_fmincon(P)
     P_area = P(1);
@@ -64,8 +97,10 @@ function run_fmincon(P)
     %Constraint Fucntion
     cf = @(x) confuneq(x,P_to_t_coef,P_area,P_cost);
     x0 = [0 0 0 0 0];
+    tic
     [x,fval,exitflag,output] = fmincon(f,x0,[],[],[],[],P_power_lb,P_power_ub,cf)
-    Test(x,P_to_t_coef,P_area,P_cost)
+    time = toc
+    Test(x,P_to_t_coef,P_area,P_cost,time,'fmincon')
 end
 function run_ga(P)
     % Load Panel Properties
@@ -209,7 +244,7 @@ function z = objective(x,P_area,P_cost) % x1-5 = power rating  % need to add in 
     Years_to_payback = Years(Cost,Annual_payback);
     z = Years_to_payback;
 end
-%Multi Objective GA: Objective
+
 %Swarm Objective function including constraints 
 function z = SO(x,P_to_t_coef,P_area,P_cost)
 % assign costs for windows
@@ -373,6 +408,7 @@ function sensitivity(x,P)
         Test(X,P_to_t_coef,P_area,P_cost,time,solver)
     end
 end
+
 %Test Output from solver
 function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     global Results_Array_Energy Results_Array_Years Results_Array_Hrs_light  solution_table
@@ -412,6 +448,7 @@ function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     scatter3(Energy_generated_kWh, Hrs_light_qualify,Years_to_payback,[100],'red','filled')
     set(gcf,'color','w');
 end
+
 % House Keeping
 function Clean()
     global Results_Array_Energy Results_Array_Years Results_Array_Hrs_light Results_Array_Cost
