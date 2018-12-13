@@ -28,6 +28,9 @@ function z = fit_function(p,g)
         scatter(p,g)
         hold on
         plot(p1,g1)
+        xlabel('Power (kWh/m^2)')
+        ylabel('Transparency (%)')
+        title('Linear Regression of Transparency and Power')
     end
 end 
 

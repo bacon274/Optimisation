@@ -16,15 +16,22 @@ clear all
 
 global solution_table target_energy solution_table_2
 
+% run subsystem 1 to obtain the energy of solution
 Subsystem_1
 Total_energy = 3000; 
 window_energy = solution_table{:,'Energy_Generated'}
+
+% Calculate target energy
 target_energy = 3000 - window_energy;
+
+% Run subsystem 2 to obtain solution with target energy
 FinalSubsystem2
+
+% Display subsystem 1 and 2 results 
 solution_table_2
 solution_table
 
-
+% Display whole system results
 Total_Energy = solution_table.Energy_Generated + solution_table_2.Energy_Generated
 Total_Cost = solution_table.Upfront_cost + solution_table_2.Upfront_cost
 Total_Years = Total_Cost/(Total_Energy*0.386)

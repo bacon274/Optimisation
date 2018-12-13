@@ -122,8 +122,7 @@ Gy = [g2_max g2_max g2 g2];
 Gz = [0 0 0 0];
 
 %% Plotting
-figure()
-plot(Years)
+
 figure()
 
 scatter3(Light_2,Energy,Years)
@@ -132,6 +131,7 @@ ylabel('Energy Generated (kWh/year)');
 zlabel('Time to pay back (years)');
 set(gcf,'color','w');
 hold on
+title('Range space - Light vs Energy vs Time until ROI')
 %patch(Gx,Gy,Gz,'green')   
 
 rows_1 = T.Energy>g2;
@@ -146,18 +146,21 @@ scatter(Cost_2 , Years)
 xlabel('Cost (£)');
 ylabel('Time to pay back (years)');
 set(gcf,'color','w');
+title('Range space - Cost vs Time until ROI')
 
 figure()
 scatter(Energy , Years)
 xlabel('Energy Generated (kWh/year)');
 ylabel('Time to pay back (years)');
 set(gcf,'color','w');
+title('Range space - Energy vs Time until ROI')
 
 figure()
 scatter(Light_2 , Years)
 xlabel('Quality Light (Hours)');
 ylabel('Time to pay back (years)');
 set(gcf,'color','w');
+title('Range space - Energy vs Time until ROI')
 
 %% Functions
 function hrs = Array_Light(x)

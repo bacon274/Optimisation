@@ -478,6 +478,7 @@ function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     set(gca,'ytick',[])
     set(gca,'xticklabel',[])
     set(gca,'yticklabel',[])
+    title('Solution Panel Configuration')
     
     
     figure()
@@ -488,6 +489,7 @@ function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
     hold on 
     scatter3(Energy_generated_kWh, Hrs_light_qualify,Years_to_payback,[100],'red','filled')
     set(gcf,'color','w');
+    title('Solver Explored Range Space')
 end
 
 % House Keeping
