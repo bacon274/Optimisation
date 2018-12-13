@@ -12,7 +12,9 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                          Global Fixed Parameters                        %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-global a1 a2 a3 a4 a5 i1 i2 i3 i4 i5 Results_Array_Energy Results_Array_Years Results_Array_Hrs_light Results_Array_Cost solution solution_table
+global a1 a2 a3 a4 a5 i1 i2 i3 i4 i5 Results_Array_Energy ... 
+    Results_Array_Years Results_Array_Hrs_light Results_Array_Cost ...
+    solution_table
 
 % Area of Windows (m^2)
 a1= 1.44; 
