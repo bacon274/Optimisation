@@ -1,3 +1,9 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        	Room Configuration Class                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% this class takes a set of 5 input values 1-5 and creates a configuration
+% of window objects by calling window.m
+
 classdef room_config
     properties
         window_1 = window(1.44,1); % note: all u values set to 1 right now, could be much higher

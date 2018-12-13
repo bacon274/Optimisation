@@ -1,24 +1,23 @@
-% STILL TO DO: 
-    % ADD DIFFERENT IRRIDIANCE VALUES ONTO DIFFERENT WINDOWS
-    % ADD SEASONAL DIFFERENCES
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       Problem Space Exploration                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This file creates every possible combination of window values for the
+% room. 3125 combinations in total. For each combination it then calculates
+% the yearly energy generated, cost, number of hours of good light let into
+% the room. 
 close all 
-%% these are all the different combinations of window values
-
+%% Compute every combination of 5 values, 0-5
 N = 5;
 m = dec2base(0:N^N-1, N)-'0';
 
-%% these are example combinations for testing
-
+% these are example combinations for testing
 a = m(1,:);
 b = m(30,:);
 
-%% room configured objects with input combo
+%% Create room objects with window configurations corresponding to input combination
 
 Room_2 = room_config(b); %test examples
 gval = Room_2.window_1.g;
-
-
 a = m(1,:);
 Room_list = [room_config(a)];
 for i = 2:length(m)
@@ -46,6 +45,7 @@ Cost_2 = zeros(C,1);
 Window_list_power = zeros(C,5);
 % for each combination working out the light into the room, energy
 % generated, and the cost 
+
 for i = 1:C % :length(m)
     Light_room = 0;
     Energy_room = 0;
@@ -90,13 +90,9 @@ for j = 1:C
     E(j) = sum(total); % this is the energy generated in kWh that day with that combination of windows
 end
 %}
-
-
 FIT = Energy*0.386; %this is £ generated 
-
 Years = Cost./(FIT); 
 %E_yearly = E*365;
-
 
 numbers = 1:C;
 
@@ -109,17 +105,12 @@ w_3 = zeros(C,1);
 w_4 = zeros(C,1);
 w_5 = zeros(C,1);
 
+Array_Light([Window_list_power(1,:)]);
 
-Array_Light([Window_list_power(1,:)])
+Array_Light([0.104,0.104,0.104,0.104,0.104]);
 
-Array_Light([0.104,0.104,0.104,0.104,0.104])
 
-%{
-for i = 1:length(Window_list_power)
-    Light_2(i) = Array_Light([Window_list_power(i,:)])
-end
-%}
-% adding constraints 
+%% adding constraints 
 
 g1 = 10000*10*365; %light 
 g1_max = max(Light);
@@ -130,6 +121,7 @@ Gx = [g1_max g1 g1 g1_max];
 Gy = [g2_max g2_max g2 g2];
 Gz = [0 0 0 0];
 
+%% Plotting
 figure()
 plot(Years)
 figure()
@@ -140,7 +132,7 @@ ylabel('Energy Generated (kWh/year)');
 zlabel('Time to pay back (years)');
 set(gcf,'color','w');
 hold on
-%patch(Gx,Gy,Gz,'green')
+%patch(Gx,Gy,Gz,'green')   
 
 rows_1 = T.Energy>g2;
 
@@ -167,7 +159,7 @@ xlabel('Quality Light (Hours)');
 ylabel('Time to pay back (years)');
 set(gcf,'color','w');
 
-
+%% Functions
 function hrs = Array_Light(x)
     x;
     P_to_t_coef = [0, 38.395,   -13.6,    1.0007];
