@@ -41,10 +41,11 @@ P2_cost = 400; % cost per panel
 P2 = [P2_area,P2_power_ub,P2_power_lb,P2_to_g_poly_coef,P2_cost];
 
 %% Solver Functions
-%run_ga(P1)
+run_ga(P1)
 %run_fmincon(P1)
-run_swarm(P1)
+%run_swarm(P1)
 %run_ga2(P1)
+%sensitivity([0.104	0.104 	0.104	0.104	0.104] ,P1)
 
 %Test([0,0,0,0,0.104],P1_to_g_poly_coef,P1_area,P2_cost)
 %run_multiobjectga(P1)
@@ -81,7 +82,7 @@ function run_ga(P)
     cf = @(x) confuneq(x,P_to_t_coef,P_area,P_cost);
     
     Number_variables = 5;
-    X0 = [0 0 0 0 0]; % start point
+    X0 = [0.104 0.104 0.104 0.104 0.104]; % start point
     options.InitialPopulationMatrix = X0; 
     tic 
     [x,fval,exitflag,output] = ga(f, Number_variables,[],[],[],[],P_power_lb,P_power_ub,cf,options)
@@ -356,6 +357,21 @@ function l = Light2(x,P_to_t_coef)
     end 
     l = sum(Lux_array);
 
+end
+
+% Post analysis
+function sensitivity(x,P)
+    P_area = P(1);
+    P_to_t_coef = P(4:7);
+    P_cost = P(8);
+    solver = 'Sensitivity Test';
+    time = 1
+    Test(x,P_to_t_coef,P_area,P_cost,time,solver)
+    for i = 1:5
+        X = x;
+        X(i) = X(i)- X(i)/10;
+        Test(X,P_to_t_coef,P_area,P_cost,time,solver)
+    end
 end
 %Test Output from solver
 function [T] = Test(x,P_to_t_coef,P_area,P_cost,time,solver)
