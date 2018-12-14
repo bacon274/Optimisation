@@ -19,8 +19,15 @@ This branch contains:
 * Background classes - **room_config.m , window.m**
 
 # Subsystem 2 - Optimised Photovoltaics on roof and wall facade
-
+This branch contains:
+* Main optimiser code - **Subsystemm2.m**
+* Experiment simulation models - **pv_cellModule_changing_Irr.mdl , pv_cellModule_changing_R.mdl , findMaxPower_shading.m**
+* Experiment simulation test variables, result data - **position_data.xlsx**
+* Variable exploration of problem space - **Exploration_of_problem_space.m**
+* Curve fitting linear polynomial regression model to find objective coefficients - **Fittingfinding_objectiveFun_fromExperimentalData.m**
+* Testing MultiObjective after pso - **MultiObjective_try_Subsystemm2.m**
+* GA optimisation try - **run_ga_try.m**
 ## Authors
 * **Jacob Mitchell** - *Subsystem 1* 
-* **Connie Hodgson** - *Subsystem 2* 
+* **Connie Anne Dodgshon** - *Subsystem 2* 
 
